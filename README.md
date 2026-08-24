@@ -1,46 +1,72 @@
-Maternal Health Risk Prediction Dataset Lab
+# Maternal Health Risk — Random Forest Classifier
 
-A notebook that cleans a maternal health dataset, explores it visually, and prepares it for training a Random Forest classifier to predict patient risk level.
+Part of the SmartMama project. Predicts a patient's maternal health risk level
+(low / mid / high) from vitals, using a Random Forest classifier trained in
+`RandomForest.ipynb`.
 
-Dataset
+## Data
 
-The dataset (`RandomForest.csv`) contains routine health measurements per patient:
+- **Source file:** `Maternal_Health_Risk.csv`, produced by `crawler.py`.
+  <!-- TODO once crawler.py is shared: confirm the exact source URL/dataset it
+       pulls from and link it here. -->
+- **Rows:** 1014 raw records, 7 columns (`Age`, `SystolicBP`, `DiastolicBP`,
+  `BS`, `BodyTemp`, `HeartRate`, `RiskLevel`).
+- **Note:** the notebook reads this file directly — no other raw filename
+  (e.g. `csvSet.csv`) is used anywhere in the pipeline.
 
-| Column        | Description                          |
-|---------------|---------------------------------------|
-| `Age`         | Patient age                           |
-| `SystolicBP`  | Systolic blood pressure               |
-| `DiastolicBP` | Diastolic blood pressure              |
-| `BS`          | Blood sugar level                     |
-| `BodyTemp`    | Body temperature                      |
-| `HeartRate`   | Heart rate                            |
-| `RiskLevel`   | Target label: `0` = low, `1` = mid, `2` = high risk |
+## What the notebook actually does
 
-What the notebook does
+Run top to bottom, in this order:
 
-1. Reads the raw CSV, checks shape, dtypes, missing values, and duplicates.
-2. Drops duplicates and null rows, saves the cleaned dataset as `RandomForestSet.csv`.
-3. Creates visuals of the data via charta
-   - Pie chart — proportion of patients per risk level
-   - Scatterplot — Blood Sugar vs Systolic BP, colored by risk level, sized by age
-   - Boxplot — Diastolic BP spread across risk levels
-   - Histograms — distribution of each numeric feature (age, BP, blood sugar, body temp, heart rate)
+1. **Load** `Maternal_Health_Risk.csv`.
+2. **Drop the `HeartRate` column.** It's excluded from the model. This step
+   runs *before* de-duplication, since removing a column can turn rows that
+   used to differ only by `HeartRate` into exact duplicates.
+3. **Clean the data:**
+   - Drop exact duplicate rows (574 of 1014 rows are duplicates once
+     `HeartRate` is dropped → 440 unique rows remain).
+   - Encode `RiskLevel` to numeric: `low risk`→0, `mid risk`→1, `high risk`→2.
+4. **Save the cleaned data** to `RandomForestSet_clean.csv` (the raw file is
+   never overwritten).
+5. **Explore the data:** class balance (pie chart), BS vs SystolicBP scatter,
+   diastolic BP by risk (boxplot), per-feature histograms, a correlation
+   heatmap, and per-feature boxplots split by risk level.
+6. **Split** the cleaned data into train/test sets (80/20, `stratify`d by
+   `RiskLevel`, `random_state=42` for reproducibility). Because
+   de-duplication already happened, no patient record appears in both splits.
+7. **Train** a `RandomForestClassifier` (`n_estimators=200`) on the training
+   set only.
+8. **Evaluate** on the held-out test set: overall accuracy, a full
+   per-class `classification_report` (precision/recall/F1), a confusion
+   matrix, and the model's `feature_importances_`.
 
+## Current results
 
-Requirements
+- **Overall test accuracy: 58%**
+- **Recall by class:** low risk 76%, mid risk 24%, high risk 55%
+- `mid risk` is the weak point — it overlaps with both other classes on most
+  vitals (visible in the per-feature boxplots), so the model confuses it most
+  often.
+- **Feature importances:** `BS` dominates, followed by `Age` and `SystolicBP`;
+  `BodyTemp` contributes least (it's near-constant across the dataset).
+- Dropping `HeartRate` cost some accuracy (it was 65% with `HeartRate`
+  included) — a deliberate trade-off, not a regression.
 
-```
-pandas
-numpy
-matplotlib
-seaborn
-scikit-learn
-```
+## Files in this project
 
-Usage
+| File | Purpose |
+|---|---|
+| `crawler.py` | Fetches/produces `Maternal_Health_Risk.csv` |
+| `Maternal_Health_Risk.csv` | Raw source data |
+| `RandomForest.ipynb` | Cleaning, EDA, training, and evaluation |
+| `RandomForestSet_clean.csv` | Cleaned, de-duplicated, encoded output |
 
-```bash
-jupyter notebook
-```
+## Known limitations / next steps
 
-Run all cells top to bottom. The cleaned dataset is written to `RandomForestSet.csv` in the working directory.
+- No baseline model (e.g. Logistic Regression) has been trained yet for
+  comparison — worth adding to show whether Random Forest's added complexity
+  is actually earning its keep on a dataset this small.
+- `mid risk` recall (24%) is the main weakness; worth investigating whether
+  additional features, more data, or class-weighting would help.
+- Hyperparameters (`n_estimators`, `max_depth`) are fixed, not tuned via
+  cross-validation.
