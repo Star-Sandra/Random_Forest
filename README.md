@@ -1,6 +1,6 @@
 # Maternal Health Risk — Random Forest Classifier
 
-Part of the SmartMama project. Predicts a patient's maternal health risk level
+Dataset cleaning and processing for the SmartMama project. Predicts a patient's maternal health risk level
 (low / mid / high) from vitals, using a Random Forest classifier trained in
 `RandomForest.ipynb`.
 
