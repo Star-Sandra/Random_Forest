@@ -7,13 +7,8 @@ Part of the SmartMama project. Predicts a patient's maternal health risk level
 ## Data
 
 - **Source file:** `Maternal_Health_Risk.csv`, produced by `crawler.py`.
-  <!-- TODO once crawler.py is shared: confirm the exact source URL/dataset it
-       pulls from and link it here. -->
-- **Rows:** 1014 raw records, 7 columns (`Age`, `SystolicBP`, `DiastolicBP`,
+ - **Rows:** 1014 raw records, 7 columns (`Age`, `SystolicBP`, `DiastolicBP`,
   `BS`, `BodyTemp`, `HeartRate`, `RiskLevel`).
-- **Note:** the notebook reads this file directly — no other raw filename
-  (e.g. `csvSet.csv`) is used anywhere in the pipeline.
-
 ## What the notebook actually does
 
 Run top to bottom, in this order:
@@ -64,9 +59,7 @@ Run top to bottom, in this order:
 ## Known limitations / next steps
 
 - No baseline model (e.g. Logistic Regression) has been trained yet for
-  comparison — worth adding to show whether Random Forest's added complexity
-  is actually earning its keep on a dataset this small.
-- `mid risk` recall (24%) is the main weakness; worth investigating whether
-  additional features, more data, or class-weighting would help.
+  comparison 
+- `mid risk` recall (24%) is the main weakness.
 - Hyperparameters (`n_estimators`, `max_depth`) are fixed, not tuned via
   cross-validation.
